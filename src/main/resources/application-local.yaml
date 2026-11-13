@@ -1,3 +1,10 @@
 spring:
   flyway:
     locations: classpath:db/migration,classpath:db/seed
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: true # 세션마다 쿼리 수·시간 집계
+logging:
+  level:
+    org.hibernate.session.metrics: debug # 집계 결과를 로그로 출력
