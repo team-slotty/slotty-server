@@ -18,3 +18,4 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    ignore-migration-patterns: "*:future,repeatable:missing" # local 시드(R__) 기록이 있어도 프로필 없이 기동 가능
