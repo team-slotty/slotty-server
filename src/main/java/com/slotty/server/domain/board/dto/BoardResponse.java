@@ -1,17 +1,21 @@
 package com.slotty.server.domain.board.dto;
 
-import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
 
-@AllArgsConstructor
-public class BoardResponse {
+public record BoardResponse(
+        String villaName,
+        List<Slot> slots
+) {
+    public record Slot(
+            int number,
+            String assignedUnit,
+            String status,
+            Occupant occupant
+    ){}
 
-    public String villaName;
-
-    public BoardResponse() {
-
-    }
-
-//    public BoardResponse(String villaName) {
-//        this.villaName = villaName;
-//    }
+    public record Occupant(
+            String plateNumber,
+            LocalDateTime enteredAt
+    ){}
 }
