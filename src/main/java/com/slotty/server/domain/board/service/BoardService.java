@@ -1,6 +1,8 @@
 package com.slotty.server.domain.board.service;
 
 import com.slotty.server.domain.board.dto.BoardResponse;
+import com.slotty.server.domain.parking.ParkingRecord;
+import com.slotty.server.domain.parking.ParkingRecordRepository;
 import com.slotty.server.domain.slot.ParkingSlot;
 import com.slotty.server.domain.slot.ParkingSlotRepository;
 import com.slotty.server.domain.user.User;
@@ -11,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import static com.slotty.server.global.exception.ErrorCode.NOT_IN_HOUSEHOLD;
 
 @Service
@@ -19,6 +24,7 @@ import static com.slotty.server.global.exception.ErrorCode.NOT_IN_HOUSEHOLD;
 public class BoardService {
     private final UserRepository userRepository;
     private final ParkingSlotRepository parkingSlotRepository;
+    private final ParkingRecordRepository parkingRecordRepository;
 
     public BoardResponse getBoard(Long userId) {
 
@@ -33,14 +39,33 @@ public class BoardService {
         List<ParkingSlot> slots = parkingSlotRepository
                 .findAllWithHouseholdByVillaId(villa.getId());
 
+        // 3-1. 지금 서 있는 차 (출차 안 한 기록)
+        List<ParkingRecord> openRecords = parkingRecordRepository
+                .findOpenWithVehicleByVillaId(villa.getId());
+
+        // 3-2. 면 id로 기록을 바로 찾을 수 있게 Map으로
+        Map<Long, ParkingRecord> recordBySlotId = openRecords.stream()
+                .collect(Collectors.toMap(
+                        r -> r.getSlot().getId(),   // 키: 이 기록이 있는 면의 id
+                        r -> r                      // 값: 기록 그 자체
+                ));
+
         // 4. 면 하나 -> 응답 칸 하나로 바꾸기
         List<BoardResponse.Slot> slotResponses = slots.stream()
-                .map((ParkingSlot slot) -> new BoardResponse.Slot(
-                        slot.getId().intValue(),
-                        slot.getHousehold() == null ? null : slot.getHousehold().getUnitNumber(),
-                        "EMPTY",
-                        null
-                )).toList();
+                .map(slot -> {
+                    ParkingRecord record = recordBySlotId.get(slot.getId()); // 없으면 null
+
+                    return new BoardResponse.Slot(
+                            slot.getId().intValue(),
+                            slot.getHousehold() == null ? null : slot.getHousehold().getUnitNumber(),
+                            record == null ? "EMPTY" : "OCCUPIED",
+                            record == null ? null : new BoardResponse.Occupant(
+                                    record.getVehicle().getPlateNumber(),
+                                    record.getEnteredAt()
+                            )
+                    );
+                })
+                .toList();
 
         return new BoardResponse(
                 villa.getName(),
