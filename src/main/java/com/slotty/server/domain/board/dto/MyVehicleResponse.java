@@ -7,6 +7,6 @@ public record MyVehicleResponse(
         Long vehicleId,
         String plateNumber,
         VehicleState state,
-        Long slotId
+        Integer slotNumber // 주차 중이 아닐 때 null이 들어가야 하므로 int 아닌 Integer
 ) {
 }
