@@ -8,7 +8,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate # 테이블은 Flyway가 만들고, JPA는 엔티티와 테이블이 맞는지 검사만 함.
-    open-in-view: false # 서비스(트랜잭션) 밖 지연 로딩을 막아 N+1 같은 숨은 쿼리를 예외로 드러냄.
     show-sql: true
     properties:
       hibernate:
@@ -18,3 +17,4 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    ignore-migration-patterns: "*:future,repeatable:missing" # local 시드(R__) 기록이 있어도 프로필 없이 기동 가능
