@@ -18,3 +18,14 @@ spring:
     enabled: true
     locations: classpath:db/migration
     ignore-migration-patterns: "*:future,repeatable:missing" # local 시드(R__) 기록이 있어도 프로필 없이 기동 가능
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      repositories:
+        enabled: false
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: 1800000      # 30분 (밀리초)
+  refresh-expiration: 1209600000  # 14일 (밀리초)

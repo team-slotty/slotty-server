@@ -1,4 +1,9 @@
 services:
+  redis:
+    image: redis:7.4
+    container_name: slotty-redis
+    ports:
+      - "6379:6379"
   mysql:
     image: mysql:8.4
     container_name: slotty-mysql

@@ -17,5 +17,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             join fetch h.villa
             where u.id = :userId and u.deletedAt is null
             """)
+
     Optional<User> findActiveWithHouseholdAndVilla(@Param("userId") Long userId);
+
+    // 로그인용: 탈퇴하지 않은 사용자를 로그인 ID로 조회
+    Optional<User> findByLoginIdAndDeletedAtIsNull(String loginId);
 }

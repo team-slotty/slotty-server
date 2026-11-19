@@ -28,12 +28,13 @@ INSERT INTO household (id, villa_id, unit_number, invite_code, created_at) VALUE
                                                                                (5, 1, '301', 'SEED301EEEE', NOW()),
                                                                                (6, 1, '302', 'SEED302FFFF', NOW());
 
--- password_hash는 로그인 기능을 만들 때 BCrypt 값으로 바꾼다
+-- 테스트 계정 비밀번호는 모두 slotty1234! (local 프로필 전용)
+-- 해시는 BCryptPasswordEncoder(강도 10)로 생성, 네 계정이 같은 해시를 공유
 INSERT INTO users (id, household_id, login_id, password_hash, name, phone, phone_public, created_at) VALUES
-                                                                                                         (1, 1, 'kim101',  'NOT_A_REAL_HASH', '김민준', '010-0000-0001', 1, NOW()),
-                                                                                                         (2, 3, 'lee201',  'NOT_A_REAL_HASH', '이서연', '010-0000-0002', 0, NOW()),
-                                                                                                         (3, 4, 'park202', 'NOT_A_REAL_HASH', '박지호', '010-0000-0003', 1, NOW()),
-                                                                                                         (4, 6, 'choi302', 'NOT_A_REAL_HASH', '최유나', '010-0000-0004', 0, NOW());
+                                                                                                         (1, 1, 'kim101',  '$2a$10$15gjCS7CfuJiZ9MbQFPMTujwxhby33Tm3OnOjcsomc8dhlqHmrxbS', '김민준', '010-0000-0001', 1, NOW()),
+                                                                                                         (2, 3, 'lee201',  '$2a$10$15gjCS7CfuJiZ9MbQFPMTujwxhby33Tm3OnOjcsomc8dhlqHmrxbS', '이서연', '010-0000-0002', 0, NOW()),
+                                                                                                         (3, 4, 'park202', '$2a$10$15gjCS7CfuJiZ9MbQFPMTujwxhby33Tm3OnOjcsomc8dhlqHmrxbS', '박지호', '010-0000-0003', 1, NOW()),
+                                                                                                         (4, 6, 'choi302', '$2a$10$15gjCS7CfuJiZ9MbQFPMTujwxhby33Tm3OnOjcsomc8dhlqHmrxbS', '최유나', '010-0000-0004', 0, NOW());
 
 UPDATE villa SET admin_user_id = 1 WHERE id = 1;
 
