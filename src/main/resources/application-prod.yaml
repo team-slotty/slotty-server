@@ -1,0 +1,8 @@
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed  # 시연용 계정이 필요해 seed 포함 (회원가입 도입 시 제거)
