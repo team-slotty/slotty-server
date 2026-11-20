@@ -1,6 +1,7 @@
 package com.slotty.server.domain.auth.service;
 
 import com.slotty.server.domain.auth.dto.LoginRequest;
+import com.slotty.server.domain.auth.dto.LogoutRequest;
 import com.slotty.server.domain.auth.dto.ReissueRequest;
 import com.slotty.server.domain.auth.dto.TokenResponse;
 import com.slotty.server.domain.user.User;
@@ -73,6 +74,12 @@ public class AuthService {
         }
 
         return issueTokens(userId);
+    }
+
+    // Refresh를 Redis에서 삭제해 이 기기의 재발급을 막는다
+    // 이미 없는 키여도 결과(로그아웃 상태)는 같으므로 에러 없이 끝낸다
+    public void logout(LogoutRequest logoutRequest) {
+        redisTemplate.delete(REFRESH_KEY_PREFIX + logoutRequest.refreshToken());
     }
 
     // 새 Access와 새 Refresh를 만들고, 새 Refresh를 Redis에 저장
