@@ -18,7 +18,7 @@ DELETE FROM villa;
 
 -- 2) 빌라 → 세대 → 사용자 → 관리자 지정 (온보딩 순서와 같음)
 INSERT INTO villa (id, name, address, latitude, longitude, layout_template, entrance_side, created_at) VALUES
-    (1, '슬로티빌라', '서울특별시 테스트구 슬로티로 1', 37.5665000, 126.9780000, 'DOUBLE', 'BOTTOM', NOW());
+    (1, 'LG 가산 디지털센터', '서울시 금천구 가산디지털1로 189', 37.4822875, 126.8792969, 'DOUBLE', 'BOTTOM', NOW());
 
 INSERT INTO household (id, villa_id, unit_number, invite_code, created_at) VALUES
                                                                                (1, 1, '101', 'SEED101AAAA', NOW()),
