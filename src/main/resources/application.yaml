@@ -2,13 +2,12 @@ spring:
   application:
     name: slotty-server
   datasource:
-    url: jdbc:mysql://localhost:3307/${DB_NAME:slotty}?connectionTimeZone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3307}/${DB_NAME:slotty}?connectionTimeZone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
     username: ${DB_USERNAME:slotty}
     password: ${DB_PASSWORD:localdev}
   jpa:
     hibernate:
       ddl-auto: validate # 테이블은 Flyway가 만들고, JPA는 엔티티와 테이블이 맞는지 검사만 함.
-    open-in-view: false # 서비스(트랜잭션) 밖 지연 로딩을 막아 N+1 같은 숨은 쿼리를 예외로 드러냄.
     show-sql: true
     properties:
       hibernate:
@@ -18,3 +17,15 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    ignore-migration-patterns: "*:future,repeatable:missing" # local 시드(R__) 기록이 있어도 프로필 없이 기동 가능
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      repositories:
+        enabled: false
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: 1800000      # 30분 (밀리초)
+  refresh-expiration: 1209600000  # 14일 (밀리초)
