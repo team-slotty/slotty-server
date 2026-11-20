@@ -22,4 +22,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 로그인용: 탈퇴하지 않은 사용자를 로그인 ID로 조회
     Optional<User> findByLoginIdAndDeletedAtIsNull(String loginId);
+
+    // 재발급용: 탈퇴하지 않은 사용자인지 확인
+    // 로그인 후 14일 안에 탈퇴한 사용자는 Refresh가 Redis에 남아 있어도 재발급을 막아야 함
+    boolean existsByIdAndDeletedAtIsNull(Long id);
 }
