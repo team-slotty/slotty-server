@@ -69,6 +69,8 @@ public class BoardService {
 
         return new BoardResponse(
                 villa.getName(),
+                villa.getLatitude(),
+                villa.getLongitude(),
                 slotResponses
         );
     }
