@@ -52,4 +52,40 @@ public class ParkingRecord extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(length = 15)
     private ExitMethod exitMethod;
+
+    // 입차: 새 기록 생성 (exitedAt이 null = 주차 중)
+    public static ParkingRecord enter(
+            ParkingSlot parkingSlot,
+            Vehicle vehicle,
+            User enteredBy,
+            EnterMethod enterMethod,
+            String clientRequestId,
+            LocalDateTime enteredAt
+    ) {
+        ParkingRecord parkingRecord = new ParkingRecord();
+
+        parkingRecord.slot = parkingSlot;
+        parkingRecord.vehicle = vehicle;
+        parkingRecord.enteredBy = enteredBy;
+        parkingRecord.enterMethod = enterMethod;
+        parkingRecord.clientRequestId = clientRequestId;
+        parkingRecord.enteredAt = enteredAt;
+
+        return parkingRecord;
+    }
+
+    // 출차: 열린 기록을 닫는다 (AUTO 정리면 exitedBy는 null)
+    public void exit(
+            User exitedBy,
+            ExitMethod exitMethod,
+            LocalDateTime exitedAt
+    ) {
+        this.exitedBy = exitedBy;
+        this.exitMethod = exitMethod;
+        this.exitedAt = exitedAt;
+    }
+
+    public boolean isOpen() {
+        return exitedAt == null;
+    }
 }
