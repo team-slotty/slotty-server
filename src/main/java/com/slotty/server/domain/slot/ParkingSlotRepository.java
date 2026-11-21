@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> {
 
@@ -18,4 +19,7 @@ public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> 
             order by s.id
             """)
     List<ParkingSlot> findAllWithHouseholdByVillaId(@Param("villaId") Long villaId);
+
+    // 우리 빌라 면일 때만 찾음 (다른 빌라 면이면 empty → 404)
+    Optional<ParkingSlot> findByIdAndVillaId(Long id, Long villaId);
 }

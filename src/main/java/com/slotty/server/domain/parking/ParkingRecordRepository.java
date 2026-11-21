@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Long> {
 
@@ -21,4 +22,13 @@ public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Lo
             where r.slot.villa.id = :villaId and r.exitedAt is null
             """)
     List<ParkingRecord> findOpenWithVehicleByVillaId(@Param("villaId") Long villaId);
+
+    // 입차 1단계: 같은 멱등키로 이미 처리된 기록
+    Optional<ParkingRecord> findByClientRequestId(String clientRequestId);
+
+    // 이 차량의 열린 기록 (open_vehicle_id 유니크라 최대 1건)
+    Optional<ParkingRecord> findByVehicleIdAndExitedAtIsNull(Long vehicleId);
+
+    // 이 면의 열린 기록 (open_slot_id 유니크라 최대 1건)
+    Optional<ParkingRecord> findBySlotIdAndExitedAtIsNull(Long slotId);
 }
