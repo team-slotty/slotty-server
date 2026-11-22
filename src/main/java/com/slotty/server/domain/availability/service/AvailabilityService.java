@@ -14,6 +14,7 @@ import com.slotty.server.domain.slot.ParkingSlotRepository;
 import com.slotty.server.domain.user.User;
 import com.slotty.server.domain.user.UserRepository;
 import com.slotty.server.domain.villa.Household;
+import com.slotty.server.domain.visit.VisitSlotPolicy;
 import com.slotty.server.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -40,6 +42,7 @@ public class AvailabilityService {
     private final ParkingSlotRepository parkingSlotRepository;
     private final AvailabilityRepository availabilityRepository;
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
+    private final VisitSlotPolicy visitSlotPolicy;
 
     // ===== 47. 우리 면 가용시간 목록 =====
     public List<AvailabilityResponse> getAvailabilities(Long userId, Long slotId) {
@@ -95,6 +98,10 @@ public class AvailabilityService {
         // FK(availability_exception.availability_id) 때문에 해제 예외를 먼저 삭제
         availabilityExceptionRepository.deleteAllByAvailabilityId(availability.getId());
         availabilityRepository.delete(availability);
+        availabilityRepository.flush(); // 아래 재검사가 삭제된 가용시간을 빼고 보도록 DB에 먼저 반영
+
+        // 이 가용시간이 사라져 시간이 더 이상 덮이지 않는 방문은 면 지정 취소 표시 (명세 49 부수 효과)
+        visitSlotPolicy.cancelBrokenVisits(availability.getSlot(), LocalDateTime.now(KST));
     }
 
     // ===== 50. [이번만 해제] =====
@@ -115,6 +122,8 @@ public class AvailabilityService {
         } catch (DataIntegrityViolationException e) { // 동시에 같은 날짜를 해제 (uk_exception_availability_date)
             throw new BusinessException(EXCEPTION_ALREADY_EXISTS);
         }
+        // 그 날짜에 이 가용시간에 기대던 방문은 면 지정 취소 표시 (명세 50 부수 효과)
+        visitSlotPolicy.cancelBrokenVisits(availability.getSlot(), LocalDateTime.now(KST));
         return new SkipResponse(availability.getId(), skipDate);
     }
 

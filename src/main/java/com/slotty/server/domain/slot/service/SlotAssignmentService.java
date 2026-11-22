@@ -9,11 +9,14 @@ import com.slotty.server.domain.villa.AdminChecker;
 import com.slotty.server.domain.villa.Household;
 import com.slotty.server.domain.villa.HouseholdRepository;
 import com.slotty.server.domain.villa.Villa;
+import com.slotty.server.domain.visit.VisitSlotPolicy;
 import com.slotty.server.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
 
 import static com.slotty.server.global.exception.ErrorCode.HOUSEHOLD_NOT_FOUND;
@@ -23,11 +26,14 @@ import static com.slotty.server.global.exception.ErrorCode.SLOT_NOT_FOUND;
 @RequiredArgsConstructor
 public class SlotAssignmentService {
 
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
     private final AdminChecker adminChecker;
     private final ParkingSlotRepository parkingSlotRepository;
     private final HouseholdRepository householdRepository;
     private final AvailabilityRepository availabilityRepository;
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
+    private final VisitSlotPolicy visitSlotPolicy;
 
     // ===== 21. 세대별 면 배정 (보낸 면만, 하나라도 실패하면 전부 취소) =====
     @Transactional
@@ -48,6 +54,8 @@ public class SlotAssignmentService {
                 availabilityExceptionRepository.deleteAllBySlotId(slot.getId());
                 availabilityRepository.deleteAllBySlotId(slot.getId());
                 slot.assignTo(newOwner);
+                // 가용시간이 없어졌으니 그걸 근거로 지정한 방문은 취소 표시 (공용이 됐으면 그대로 지정 가능해서 취소 안 됨)
+                visitSlotPolicy.cancelBrokenVisits(slot, LocalDateTime.now(KST));
             }
         }
     }
