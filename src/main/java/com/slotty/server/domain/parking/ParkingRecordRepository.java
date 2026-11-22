@@ -1,6 +1,7 @@
 package com.slotty.server.domain.parking;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -41,4 +42,9 @@ public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Lo
             order by v.id
             """)
     List<ParkingRecord> findOpenWithVehicleAndSlotByHouseholdId(@Param("householdId") Long householdId);
+
+    // 차량 삭제 전 그 차량의 기록 전부 삭제 (DELETE 한 번. 메서드 이름 방식은 한 건씩 조회 후 삭제라 기록 수만큼 쿼리)
+    @Modifying
+    @Query("delete from ParkingRecord r where r.vehicle.id = :vehicleId")
+    void deleteAllByVehicleId(@Param("vehicleId") Long vehicleId);
 }
