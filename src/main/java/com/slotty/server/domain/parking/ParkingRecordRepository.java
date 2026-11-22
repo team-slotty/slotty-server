@@ -72,4 +72,13 @@ public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Lo
     Page<ParkingRecord> findHistoryByHouseholdId(@Param("householdId") Long householdId,
                                                  @Param("since") LocalDateTime since,
                                                  Pageable pageable);
+
+    // 면 상세: 이 면의 열린 기록 + 차량 + 차량 세대 (호수·번호판 표시)
+    @Query("""
+            select r from ParkingRecord r
+            join fetch r.vehicle v
+            join fetch v.household
+            where r.slot.id = :slotId and r.exitedAt is null
+            """)
+    Optional<ParkingRecord> findOpenWithVehicleBySlotId(@Param("slotId") Long slotId);
 }
