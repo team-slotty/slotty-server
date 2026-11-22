@@ -1,7 +1,6 @@
 package com.slotty.server.domain.slot.service;
 
 import com.slotty.server.domain.availability.AvailabilityChecker;
-import com.slotty.server.domain.board.SlotStatus;
 import com.slotty.server.domain.board.dto.AvailableWindowResponse;
 import com.slotty.server.domain.parking.ParkingRecord;
 import com.slotty.server.domain.parking.ParkingRecordRepository;
@@ -9,7 +8,11 @@ import com.slotty.server.domain.slot.ParkingSlot;
 import com.slotty.server.domain.slot.ParkingSlotRepository;
 import com.slotty.server.domain.slot.dto.SlotDetailResponse;
 import com.slotty.server.domain.slot.dto.SlotDetailResponse.Occupant;
+import com.slotty.server.domain.board.SlotStatusResolver;
+import com.slotty.server.domain.board.dto.BoardVisitResponse;
 import com.slotty.server.domain.slot.dto.SlotDetailResponse.Permissions;
+import com.slotty.server.domain.visit.Visit;
+import com.slotty.server.domain.visit.VisitRepository;
 import com.slotty.server.domain.slot.dto.SlotDetailResponse.Unidentified;
 import com.slotty.server.domain.unidentified.UnidentifiedReport;
 import com.slotty.server.domain.unidentified.UnidentifiedReportRepository;
@@ -41,6 +44,7 @@ public class SlotService {
     private final ParkingRecordRepository parkingRecordRepository;
     private final UnidentifiedReportRepository unidentifiedReportRepository;
     private final AvailabilityChecker availabilityChecker;
+    private final VisitRepository visitRepository;
 
     // ===== 24. 면 상세 =====
     public SlotDetailResponse getSlotDetail(Long userId, Long slotId) {
@@ -57,12 +61,16 @@ public class SlotService {
         boolean isMine = !isCommon && slot.getHousehold().getId().equals(myHousehold.getId());
         boolean isAdmin = villa.getAdminUser() != null && villa.getAdminUser().getId().equals(user.getId());
         LocalDateTime now = LocalDateTime.now(KST);
+        LocalDateTime tomorrowStart = now.toLocalDate().plusDays(1).atStartOfDay();
 
         ParkingRecord openRecord = parkingRecordRepository.findOpenWithVehicleBySlotId(slotId).orElse(null);
         UnidentifiedReport openReport = unidentifiedReportRepository.findBySlotIdAndResolvedAtIsNull(slotId).orElse(null);
         AvailableWindowResponse window = availabilityChecker.findOpenNow(slotId, now)
                 .map(a -> new AvailableWindowResponse(a.isAllDay(), a.getStartTime(), a.getEndTime()))
                 .orElse(null);
+        Visit visit = SlotStatusResolver.pickVisit(visitRepository.findBoardCandidatesBySlotId(slotId, tomorrowStart), now);
+        boolean canSeeVisit = visit != null
+                && (isAdmin || isMine || visit.getHousehold().getId().equals(myHousehold.getId()));
 
         return new SlotDetailResponse(
                 slot.getId(),
@@ -70,30 +78,18 @@ public class SlotService {
                 isCommon,
                 isCommon ? null : slot.getHousehold().getUnitNumber(),
                 isMine,
-                statusOf(openReport, openRecord, window),
+                SlotStatusResolver.resolve(openReport != null, openRecord != null, visit, now, window != null),
                 toOccupant(openRecord, myHousehold),
                 window,
+                canSeeVisit ? BoardVisitResponse.from(visit) : null,
                 toUnidentified(openReport, isAdmin || isMine),
                 new Permissions(
-                        (isAdmin || isMine) && openReport == null,
+                        // 등록 차량이 입차해 있는 면은 미확인이 아님 (43번도 409 SLOT_OCCUPIED)
+                        (isAdmin || isMine) && openReport == null && openRecord == null,
                         (isAdmin || isMine) && openReport != null,
                         isMine && openReport != null
                 )
         );
-    }
-
-    // 상태 우선순위 (명세 22번 표): UNIDENTIFIED > OCCUPIED > (방문 상태는 방문 기능 추가 시) > AVAILABLE > EMPTY
-    private SlotStatus statusOf(UnidentifiedReport openReport, ParkingRecord openRecord, AvailableWindowResponse window) {
-        if (openReport != null) {
-            return SlotStatus.UNIDENTIFIED;
-        }
-        if (openRecord != null) {
-            return SlotStatus.OCCUPIED;
-        }
-        if (window != null) {
-            return SlotStatus.AVAILABLE;
-        }
-        return SlotStatus.EMPTY;
     }
 
     // 전체 번호는 내 세대 차량일 때만, 그 외에는 호수·뒤 4자리만 (F8 개인정보)

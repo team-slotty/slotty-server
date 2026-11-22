@@ -9,12 +9,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface UnidentifiedReportRepository extends JpaRepository<UnidentifiedReport, Long> {
 
     // 이 면의 미해제 미확인 기록 (open_slot_id 유니크라 최대 1건)
     Optional<UnidentifiedReport> findBySlotIdAndResolvedAtIsNull(Long slotId);
+
+    // 현황판: 빌라의 미해제 기록 전부 (면 id → 기록 Map으로 묶어 씀)
+    @Query("select r from UnidentifiedReport r where r.slot.villa.id = :villaId and r.resolvedAt is null")
+    List<UnidentifiedReport> findOpenByVillaId(@Param("villaId") Long villaId);
 
     // 배치 변경: 삭제할 면에 미확인 기록이 남아 있는지
     boolean existsBySlotId(Long slotId);
