@@ -27,15 +27,17 @@ import com.slotty.server.domain.vehicle.Vehicle;
 import com.slotty.server.domain.vehicle.VehicleRepository;
 import com.slotty.server.domain.villa.Household;
 import com.slotty.server.global.exception.BusinessException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.slotty.server.domain.parking.CheckOutMode;
 import com.slotty.server.domain.parking.dto.CheckOutOptionsResponse;
 import com.slotty.server.domain.parking.dto.CheckOutOptionsResponse.ParkedVehicle;
 import com.slotty.server.domain.parking.dto.CheckOutRequest;
 import com.slotty.server.domain.parking.dto.CheckOutResponse;
+import com.slotty.server.domain.parking.dto.HistoryResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -60,6 +62,8 @@ public class ParkingService {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final Duration PASSENGER_WINDOW = Duration.ofMinutes(5); // 동승자 규칙
     private static final Duration CLOCK_SKEW = Duration.ofMinutes(1);       // 기기 시계가 조금 빠른 것은 허용
+    private static final int HISTORY_DAYS = 30;                              // 이력 보관 기간 (명세)
+    private static final int MAX_PAGE_SIZE = 100;                            // 한 번에 너무 많이 요청하는 것 방지
 
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
@@ -267,6 +271,18 @@ public class ParkingService {
         return CheckOutResponse.from(open);
     }
 
+    // ===== 34. 입출차 이력 =====
+    public HistoryResponse getHistory(Long userId, int page, int size) {
+        User user = findResident(userId);
+
+        // 잘못된 값은 에러 대신 가까운 정상 값으로 (page -1 → 0, size 1000 → 100)
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        LocalDateTime since = LocalDateTime.now(KST).minusDays(HISTORY_DAYS);
+
+        return HistoryResponse.from(parkingRecordRepository.findHistoryByHouseholdId(
+                user.getHousehold().getId(), since, PageRequest.of(safePage, safeSize)));
+    }
 
     // ===== 공통 =====
 

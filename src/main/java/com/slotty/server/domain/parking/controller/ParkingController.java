@@ -1,13 +1,7 @@
 package com.slotty.server.domain.parking.controller;
 
-import com.slotty.server.domain.parking.dto.CheckInOptionsResponse;
-import com.slotty.server.domain.parking.dto.CheckInRequest;
-import com.slotty.server.domain.parking.dto.CheckInResponse;
-import com.slotty.server.domain.parking.dto.CheckInResult;
+import com.slotty.server.domain.parking.dto.*;
 import com.slotty.server.domain.parking.service.ParkingService;
-import com.slotty.server.domain.parking.dto.CheckOutOptionsResponse;
-import com.slotty.server.domain.parking.dto.CheckOutRequest;
-import com.slotty.server.domain.parking.dto.CheckOutResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,5 +43,12 @@ public class ParkingController {
     public CheckOutResponse checkOut(@AuthenticationPrincipal Long userId,
                                      @Valid @RequestBody CheckOutRequest request) {
         return parkingService.checkOut(userId, request);
+    }
+
+    @GetMapping("/history")
+    public HistoryResponse getHistory(@AuthenticationPrincipal Long userId,
+                                      @RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "20") int size) {
+        return parkingService.getHistory(userId, page, size);
     }
 }
