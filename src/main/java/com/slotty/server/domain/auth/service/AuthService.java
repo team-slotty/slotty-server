@@ -8,17 +8,20 @@ import com.slotty.server.domain.user.User;
 import com.slotty.server.domain.user.UserRepository;
 import com.slotty.server.global.auth.JwtProvider;
 import com.slotty.server.global.exception.BusinessException;
+import com.slotty.server.domain.auth.dto.SignupRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Duration;
 import java.util.UUID;
 
 import static com.slotty.server.global.exception.ErrorCode.INVALID_LOGIN;
 import static com.slotty.server.global.exception.ErrorCode.INVALID_REFRESH_TOKEN;
+import static com.slotty.server.global.exception.ErrorCode.LOGIN_ID_DUPLICATED;
 
 @Service
 @Transactional(readOnly = true)
@@ -43,6 +46,31 @@ public class AuthService {
         this.redisTemplate = redisTemplate;
         this.refreshTtl = Duration.ofMillis(refreshExpiration);
     }
+
+    // 회원가입 → 바로 로그인 상태 (가입 다음 화면이 빌라 만들기/초대 코드라 토큰이 필요)
+    @Transactional
+    public TokenResponse signup(SignupRequest request) {
+        if (userRepository.existsByLoginId(request.loginId())) {
+            throw new BusinessException(LOGIN_ID_DUPLICATED);
+        }
+
+        User user = User.create(
+                request.loginId(),
+                passwordEncoder.encode(request.password()), // 비밀번호는 BCrypt 해시로만 저장
+                request.name().strip(),
+                request.phone().replace("-", ""),           // 하이픈 제거, 숫자만
+                request.phonePublic()
+        );
+
+        try {
+            userRepository.saveAndFlush(user); // 동시에 같은 아이디로 가입하면 uk_users_login_id 위반
+        } catch (DataIntegrityViolationException e) {
+            throw new BusinessException(LOGIN_ID_DUPLICATED);
+        }
+
+        return issueTokens(user.getId());
+    }
+
 
     public TokenResponse login(LoginRequest request) {
 

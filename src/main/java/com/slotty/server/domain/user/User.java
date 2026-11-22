@@ -40,4 +40,15 @@ public class User extends BaseTimeEntity {
     private boolean phonePublic;
 
     private LocalDateTime deletedAt;
+
+    // 회원가입: 가입 직후에는 세대 소속이 없음 (household = null → 빌라 만들기 또는 초대 코드 참여)
+    public static User create(String loginId, String passwordHash, String name, String phone, boolean phonePublic) {
+        User user = new User();
+        user.loginId = loginId;
+        user.passwordHash = passwordHash;
+        user.name = name;
+        user.phone = phone;
+        user.phonePublic = phonePublic;
+        return user;
+    }
 }

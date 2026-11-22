@@ -22,4 +22,8 @@ public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> 
 
     // 우리 빌라 면일 때만 찾음 (다른 빌라 면이면 empty → 404)
     Optional<ParkingSlot> findByIdAndVillaId(Long id, Long villaId);
+
+    // 내 정보의 assignedSlotIds: 엔티티 전체가 아니라 id만 필요해서 id만 조회
+    @Query("select s.id from ParkingSlot s where s.household.id = :householdId order by s.id")
+    List<Long> findIdsByHouseholdId(@Param("householdId") Long householdId);
 }
