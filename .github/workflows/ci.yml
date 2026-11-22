@@ -9,6 +9,7 @@ on:
 
 jobs:
   test:
+    if: github.repository == 'team-slotty/slotty-server' # Classroom(비공개) 레포에서는 실행 안 함 (Actions 요금 문제)
     runs-on: ubuntu-latest
 
     # contextLoads(통합 테스트)가 실제 MySQL·Redis에 연결하므로 테스트용 컨테이너를 같이 띄움
