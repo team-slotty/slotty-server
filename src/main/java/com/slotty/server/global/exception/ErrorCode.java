@@ -29,7 +29,11 @@ public enum ErrorCode {
     SLOT_NOT_ALLOWED(HttpStatus.FORBIDDEN, "입차할 수 없는 주차면입니다."),
     SLOT_OCCUPIED(HttpStatus.CONFLICT, "이미 다른 차량이 주차된 면입니다."),
     NO_VEHICLE(HttpStatus.CONFLICT, "등록된 차량이 없습니다."),
-    NOT_PARKED(HttpStatus.CONFLICT, "주차 중인 차량이 없습니다.");
+    NOT_PARKED(HttpStatus.CONFLICT, "주차 중인 차량이 없습니다."),
+
+    // 차량
+    PLATE_DUPLICATED(HttpStatus.CONFLICT, "이미 등록된 차량번호입니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

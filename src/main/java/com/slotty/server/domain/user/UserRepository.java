@@ -42,4 +42,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 내 세대의 세대원 (탈퇴한 사용자 제외)
     List<User> findByHouseholdIdAndDeletedAtIsNullOrderById(Long householdId);
+
+    // 연락 담당자 지정: 내 세대의 활성 사용자일 때만
+    Optional<User> findByIdAndHouseholdIdAndDeletedAtIsNull(Long id, Long householdId);
 }
