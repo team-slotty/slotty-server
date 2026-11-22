@@ -21,4 +21,9 @@ public interface AvailabilityExceptionRepository extends JpaRepository<Availabil
     @Modifying
     @Query("delete from AvailabilityException e where e.availability.id = :availabilityId")
     void deleteAllByAvailabilityId(@Param("availabilityId") Long availabilityId);
+
+    // 면의 가용시간을 지우기 전, 그 가용시간들의 해제 예외 전부 삭제
+    @Modifying
+    @Query("delete from AvailabilityException e where e.availability.id in (select a.id from Availability a where a.slot.id = :slotId)")
+    void deleteAllBySlotId(@Param("slotId") Long slotId);
 }

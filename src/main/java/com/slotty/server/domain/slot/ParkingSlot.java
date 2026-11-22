@@ -45,4 +45,9 @@ public class ParkingSlot extends BaseTimeEntity {
 
     @Column(nullable = false)
     private short rotation;
+
+    // 면 배정 변경 (null이면 공용)
+    public void assignTo(Household household) {
+        this.household = household;
+    }
 }

@@ -2,6 +2,7 @@ package com.slotty.server.domain.vehicle;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -46,4 +47,16 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
                                 @Param("last4") String last4,
                                 @Param("keyword") String keyword,
                                 Pageable pageable);
+
+    // 관리자 세대 목록의 차량 수: 세대별 개수를 GROUP BY 한 번으로 [householdId, count]
+    @Query("select v.household.id, count(v) from Vehicle v where v.villa.id = :villaId group by v.household.id")
+    List<Object[]> countByHouseholdInVilla(@Param("villaId") Long villaId);
+
+    // 세대 삭제 전 차량 확인
+    boolean existsByHouseholdId(Long householdId);
+
+    // 세대원 내보내기: 그 사람이 연락 담당자인 차량은 담당자 없음으로 (UPDATE 한 번)
+    @Modifying
+    @Query("update Vehicle v set v.contactUser = null where v.contactUser.id = :userId")
+    void clearContactUser(@Param("userId") Long userId);
 }
