@@ -26,4 +26,10 @@ public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> 
     // 내 정보의 assignedSlotIds: 엔티티 전체가 아니라 id만 필요해서 id만 조회
     @Query("select s.id from ParkingSlot s where s.household.id = :householdId order by s.id")
     List<Long> findIdsByHouseholdId(@Param("householdId") Long householdId);
+
+    // 내 세대 배정 면 (내 세대 화면)
+    List<ParkingSlot> findByHouseholdIdOrderById(Long householdId);
+
+    // 참여 응답의 hasAssignedSlot: 개수가 아니라 "있나?"만 필요해서 exists
+    boolean existsByHouseholdId(Long householdId);
 }

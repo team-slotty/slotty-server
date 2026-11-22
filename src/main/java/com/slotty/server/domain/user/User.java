@@ -51,4 +51,9 @@ public class User extends BaseTimeEntity {
         user.phonePublic = phonePublic;
         return user;
     }
+
+    // 초대 코드 참여: 세대에 소속
+    public void joinHousehold(Household household) {
+        this.household = household;
+    }
 }
