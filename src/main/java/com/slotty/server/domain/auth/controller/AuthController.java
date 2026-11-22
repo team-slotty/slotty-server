@@ -5,18 +5,25 @@ import com.slotty.server.domain.auth.dto.LogoutRequest;
 import com.slotty.server.domain.auth.dto.ReissueRequest;
 import com.slotty.server.domain.auth.dto.TokenResponse;
 import com.slotty.server.domain.auth.service.AuthService;
+import com.slotty.server.domain.auth.dto.SignupRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/api/auth/signup")
+    public ResponseEntity<TokenResponse> signup(@Valid @RequestBody SignupRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.signup(request)); // 201
+    }
 
     @PostMapping("/api/auth/login")
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
