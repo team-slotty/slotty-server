@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,6 +41,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         return toResponse(ErrorCode.VALIDATION_FAILED, Map.of(e.getName(), "형식이 올바르지 않습니다."));
+    }
+
+    // 없는 경로 (예: /api/parking/nope) → 다른 에러와 같은 { code, message, details } 형식의 404
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException e) {
+        return toResponse(ErrorCode.NOT_FOUND, Map.of());
     }
 
     private ResponseEntity<ErrorResponse> toResponse(ErrorCode errorCode, Map<String, Object> details) {

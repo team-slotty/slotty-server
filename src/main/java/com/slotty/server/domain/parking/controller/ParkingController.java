@@ -5,6 +5,9 @@ import com.slotty.server.domain.parking.dto.CheckInRequest;
 import com.slotty.server.domain.parking.dto.CheckInResponse;
 import com.slotty.server.domain.parking.dto.CheckInResult;
 import com.slotty.server.domain.parking.service.ParkingService;
+import com.slotty.server.domain.parking.dto.CheckOutOptionsResponse;
+import com.slotty.server.domain.parking.dto.CheckOutRequest;
+import com.slotty.server.domain.parking.dto.CheckOutResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,5 +37,16 @@ public class ParkingController {
         CheckInResult result = parkingService.checkIn(userId, request);
         HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
         return ResponseEntity.status(status).body(result.response());
+    }
+
+    @GetMapping("/check-out-options")
+    public CheckOutOptionsResponse getCheckOutOptions(@AuthenticationPrincipal Long userId) {
+        return parkingService.getCheckOutOptions(userId);
+    }
+
+    @PostMapping("/check-out")
+    public CheckOutResponse checkOut(@AuthenticationPrincipal Long userId,
+                                     @Valid @RequestBody CheckOutRequest request) {
+        return parkingService.checkOut(userId, request);
     }
 }

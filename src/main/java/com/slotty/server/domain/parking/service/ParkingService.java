@@ -31,6 +31,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.slotty.server.domain.parking.CheckOutMode;
+import com.slotty.server.domain.parking.dto.CheckOutOptionsResponse;
+import com.slotty.server.domain.parking.dto.CheckOutOptionsResponse.ParkedVehicle;
+import com.slotty.server.domain.parking.dto.CheckOutRequest;
+import com.slotty.server.domain.parking.dto.CheckOutResponse;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -217,6 +222,51 @@ public class ParkingService {
         return new CheckInResult(true, CheckInResponse.of(
                 record, false, autoClosedRecordId, unidentifiedResolved, availabilitySkipped));
     }
+
+    // ===== 32. 출차 옵션 =====
+    public CheckOutOptionsResponse getCheckOutOptions(Long userId) {
+        User user = findResident(userId);
+
+        List<ParkedVehicle> parked = parkingRecordRepository
+                .findOpenWithVehicleAndSlotByHouseholdId(user.getHousehold().getId())
+                .stream()
+                .map(ParkedVehicle::from)
+                .toList();
+        if (parked.isEmpty()) {
+            throw new BusinessException(NOT_PARKED);
+        }
+
+        CheckOutMode mode = (parked.size() == 1) ? CheckOutMode.AUTO : CheckOutMode.SELECT;
+        Long suggestedVehicleId = (mode == CheckOutMode.AUTO) ? parked.get(0).vehicleId() : null;
+
+        return new CheckOutOptionsResponse(mode, parked, suggestedVehicleId);
+    }
+
+    // ===== 33. 출차 =====
+    @Transactional
+    public CheckOutResponse checkOut(Long userId, CheckOutRequest request) {
+        if (request.method() == ExitMethod.AUTO) { // AUTO는 서버가 출차 누락을 정리할 때만 씀
+            throw new BusinessException(VALIDATION_FAILED);
+        }
+        LocalDateTime exitedAt = toKst(request.exitedAt());
+
+        User user = findResident(userId);
+        Vehicle vehicle = vehicleRepository.findByIdAndHouseholdId(request.vehicleId(), user.getHousehold().getId())
+                .orElseThrow(() -> new BusinessException(VEHICLE_NOT_FOUND));
+
+        // 열린 기록이 없으면 409 (이미 출차한 재전송 포함 → 앱은 성공으로 간주)
+        ParkingRecord open = parkingRecordRepository.findByVehicleIdAndExitedAtIsNull(vehicle.getId())
+                .orElseThrow(() -> new BusinessException(NOT_PARKED));
+
+        // 출차 시각이 입차 시각보다 앞서면 400 (DB CHECK exited_at >= entered_at 보다 먼저 막음)
+        if (exitedAt.isBefore(open.getEnteredAt())) {
+            throw new BusinessException(VALIDATION_FAILED);
+        }
+
+        open.exit(user, request.method(), exitedAt); // dirty checking으로 UPDATE
+        return CheckOutResponse.from(open);
+    }
+
 
     // ===== 공통 =====
 
