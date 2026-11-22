@@ -61,7 +61,12 @@ public enum ErrorCode {
     VISIT_OVERLAP(HttpStatus.CONFLICT, "같은 면에 시간이 겹치는 방문이 있습니다."),
     VISIT_ALREADY_STARTED(HttpStatus.CONFLICT, "이미 시작된 방문입니다."),
     VISIT_NOT_STARTED(HttpStatus.CONFLICT, "아직 시작되지 않은 방문입니다."),
-    VISIT_ALREADY_ENDED(HttpStatus.CONFLICT, "이미 종료된 방문입니다.");
+    VISIT_ALREADY_ENDED(HttpStatus.CONFLICT, "이미 종료된 방문입니다."),
+
+    // 미확인 차량
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "미확인 기록을 찾을 수 없습니다."),
+    REPORT_ALREADY_OPEN(HttpStatus.CONFLICT, "이미 미확인 차량으로 기록된 면입니다."),
+    REPORT_ALREADY_RESOLVED(HttpStatus.CONFLICT, "이미 해제된 미확인 기록입니다.");
 
     private final HttpStatus status;
     private final String message;
