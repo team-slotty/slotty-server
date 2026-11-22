@@ -6,6 +6,7 @@ spring:
     username: ${DB_USERNAME:slotty}
     password: ${DB_PASSWORD:localdev}
   jpa:
+    open-in-view: false # SSE 연결이 DB 커넥션을 붙잡지 않도록. SSE를 뺀 경로는 OpenInViewConfig가 다시 켬
     hibernate:
       ddl-auto: validate # 테이블은 Flyway가 만들고, JPA는 엔티티와 테이블이 맞는지 검사만 함.
     show-sql: true
@@ -29,3 +30,7 @@ jwt:
   secret: ${JWT_SECRET}
   access-expiration: 1800000      # 30분 (밀리초)
   refresh-expiration: 1209600000  # 14일 (밀리초)
+
+# 카카오 로컬 API (주소 → 좌표). 키가 없으면 변환을 건너뛰고 geocodeFailed: true
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY:}

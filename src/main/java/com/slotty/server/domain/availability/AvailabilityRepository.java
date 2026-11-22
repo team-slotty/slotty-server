@@ -13,6 +13,9 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
     // 이 면에 등록된 가용시간 전체 (회차 판정은 엔티티의 isOpenAt)
     List<Availability> findBySlotId(Long slotId);
 
+    // 현황판: 빌라 모든 면의 가용시간을 한 번에 (면마다 조회하면 N+1)
+    List<Availability> findBySlotVillaId(Long villaId);
+
     // 목록: 내 세대 배정 면의 가용시간 + 면 (slotId가 null이면 전체 배정 면)
     @Query("""
             select a from Availability a
@@ -31,4 +34,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
     @Modifying
     @Query("delete from Availability a where a.slot.id = :slotId")
     void deleteAllBySlotId(@Param("slotId") Long slotId);
+
+    // 배치 변경: 삭제할 면에 가용시간이 남아 있는지
+    boolean existsBySlotId(Long slotId);
 }

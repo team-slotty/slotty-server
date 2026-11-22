@@ -49,7 +49,27 @@ public enum ErrorCode {
     HOUSEHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "세대를 찾을 수 없습니다."),
     UNIT_NUMBER_DUPLICATED(HttpStatus.CONFLICT, "이미 있는 호수입니다."),
     HOUSEHOLD_NOT_EMPTY(HttpStatus.CONFLICT, "가입자나 차량이 남아 있는 세대는 삭제할 수 없습니다."),
-    CANNOT_REMOVE_ADMIN(HttpStatus.BAD_REQUEST, "관리자는 먼저 관리자 권한을 위임해야 합니다.");
+    CANNOT_REMOVE_ADMIN(HttpStatus.BAD_REQUEST, "관리자는 먼저 관리자 권한을 위임해야 합니다."),
+
+    // 빌라
+    SLOT_IN_USE(HttpStatus.CONFLICT, "기록이 남아 있는 주차면은 삭제할 수 없습니다."),
+
+    // 방문
+    VISIT_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "방문 시간이 올바르지 않습니다. (종료가 시작보다 늦고, 24시간 이하, 종료가 지금 이후)"),
+    VISIT_NOT_FOUND(HttpStatus.NOT_FOUND, "방문을 찾을 수 없습니다."),
+    SLOT_NOT_AVAILABLE(HttpStatus.CONFLICT, "방문 시간에 지정할 수 없는 주차면입니다."),
+    VISIT_OVERLAP(HttpStatus.CONFLICT, "같은 면에 시간이 겹치는 방문이 있습니다."),
+    VISIT_ALREADY_STARTED(HttpStatus.CONFLICT, "이미 시작된 방문입니다."),
+    VISIT_NOT_STARTED(HttpStatus.CONFLICT, "아직 시작되지 않은 방문입니다."),
+    VISIT_ALREADY_ENDED(HttpStatus.CONFLICT, "이미 종료된 방문입니다."),
+
+    // 미확인 차량
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "미확인 기록을 찾을 수 없습니다."),
+    REPORT_ALREADY_OPEN(HttpStatus.CONFLICT, "이미 미확인 차량으로 기록된 면입니다."),
+    REPORT_ALREADY_RESOLVED(HttpStatus.CONFLICT, "이미 해제된 미확인 기록입니다."),
+
+    // 탈퇴
+    ADMIN_MUST_DELEGATE(HttpStatus.CONFLICT, "관리자는 다른 입주민에게 관리자를 위임한 뒤 탈퇴할 수 있습니다.");
 
     private final HttpStatus status;
     private final String message;

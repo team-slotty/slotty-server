@@ -1,13 +1,19 @@
 package com.slotty.server.domain.board.dto;
 
-import java.time.OffsetDateTime;
+import com.slotty.server.domain.visit.Visit;
 
-// 면에 지정된 방문
+import java.time.LocalDateTime;
+
+// 면에 지정된 방문 (관리자·면 주인·방문 세대에게만)
 public record BoardVisitResponse(
         Long visitId,
-        String unitNumber,
+        String unitNumber,  // 방문 세대
         String plateLast4,
-        OffsetDateTime startAt,
-        OffsetDateTime endAt
+        LocalDateTime startAt,
+        LocalDateTime endAt
 ) {
+    public static BoardVisitResponse from(Visit visit) {
+        return new BoardVisitResponse(visit.getId(), visit.getHousehold().getUnitNumber(),
+                visit.getPlateLast4(), visit.getStartAt(), visit.getEndAt());
+    }
 }

@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
+import org.springframework.context.ApplicationEventPublisher;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -62,8 +63,9 @@ class ParkingServiceTest {
     @Mock UnidentifiedReportRepository unidentifiedReportRepository;
     @Mock AvailabilityRepository availabilityRepository;
     @Mock AvailabilityExceptionRepository availabilityExceptionRepository;
+    @Mock ApplicationEventPublisher eventPublisher; // 현황판 SSE 이벤트 발행 (9번 묶음에서 추가)
 
-    @InjectMocks ParkingService parkingService; // 위 가짜 Repository 7개를 생성자로 주입
+    @InjectMocks ParkingService parkingService; // 위 가짜 7개 + 이벤트 발행기를 생성자로 주입
 
     // 등장인물: 101호(나 id 1, 세대원 id 2), 102호. 면: 내 배정 1번, 102호 배정 2번, 공용 6번. 내 차 id 5
     User me, roommate;

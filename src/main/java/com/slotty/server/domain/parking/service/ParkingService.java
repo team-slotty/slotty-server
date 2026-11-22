@@ -1,5 +1,7 @@
 package com.slotty.server.domain.parking.service;
 
+import com.slotty.server.domain.board.event.BoardChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.slotty.server.domain.availability.Availability;
 import com.slotty.server.domain.availability.AvailabilityException;
 import com.slotty.server.domain.availability.AvailabilityExceptionRepository;
@@ -70,6 +72,7 @@ public class ParkingService {
     private final ParkingSlotRepository parkingSlotRepository;
     private final ParkingRecordRepository parkingRecordRepository;
     private final UnidentifiedReportRepository unidentifiedReportRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final AvailabilityRepository availabilityRepository;
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
 
@@ -223,6 +226,10 @@ public class ParkingService {
         // 8. 내 배정 면이고 지금이 가용시간 회차면 오늘 날짜 예외 생성 (주인 입차 우선)
         boolean availabilitySkipped = myAssignedSlot && skipOpenAvailabilities(slot, user, enteredAt);
 
+        // 현황판 알림: 이 면 + 출차 누락으로 정리된 앞 기록의 면
+        Long autoClosedSlotId = openOfVehicle.map(r -> r.getSlot().getId()).orElse(null);
+        eventPublisher.publishEvent(BoardChangedEvent.of(household.getVilla().getId(), slot.getId(), autoClosedSlotId));
+
         return new CheckInResult(true, CheckInResponse.of(
                 record, false, autoClosedRecordId, unidentifiedResolved, availabilitySkipped));
     }
@@ -268,6 +275,7 @@ public class ParkingService {
         }
 
         open.exit(user, request.method(), exitedAt); // dirty checking으로 UPDATE
+        eventPublisher.publishEvent(BoardChangedEvent.of(user.getHousehold().getVilla().getId(), open.getSlot().getId()));
         return CheckOutResponse.from(open);
     }
 

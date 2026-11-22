@@ -2,6 +2,7 @@ package com.slotty.server.domain.slot.dto;
 
 import com.slotty.server.domain.board.SlotStatus;
 import com.slotty.server.domain.board.dto.AvailableWindowResponse;
+import com.slotty.server.domain.board.dto.BoardVisitResponse;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ public record SlotDetailResponse(
         SlotStatus status,
         Occupant occupant,           // 주차 중인 차 (없으면 null)
         AvailableWindowResponse availableWindow, // 지금 가용시간 회차면 그 시간 (없으면 null)
+        BoardVisitResponse visit,    // 면에 지정된 방문 (관리자·면 주인·방문 세대에게만, 없으면 null)
         Unidentified unidentified,   // 미해제 미확인 기록 (없으면 null)
         Permissions permissions
 ) {
