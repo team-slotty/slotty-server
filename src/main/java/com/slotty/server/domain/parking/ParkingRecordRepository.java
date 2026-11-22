@@ -4,7 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,4 +50,26 @@ public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Lo
     @Modifying
     @Query("delete from ParkingRecord r where r.vehicle.id = :vehicleId")
     void deleteAllByVehicleId(@Param("vehicleId") Long vehicleId);
+
+    // 이력: 내 세대 차량의 최근 기록 (since 이후 입차 + 아직 주차 중인 기록), 최신순, 페이지
+    // ManyToOne만 fetch join이라 페이지(LIMIT)가 DB에서 적용됨
+    // fetch join이 들어간 쿼리로는 개수를 셀 수 없어서 countQuery를 따로 지정
+    @Query(value = """
+            select r from ParkingRecord r
+            join fetch r.vehicle v
+            join fetch r.slot
+            join fetch r.enteredBy
+            left join fetch r.exitedBy
+            where v.household.id = :householdId
+              and (r.enteredAt >= :since or r.exitedAt is null)
+            order by r.enteredAt desc, r.id desc
+            """,
+            countQuery = """
+            select count(r) from ParkingRecord r
+            where r.vehicle.household.id = :householdId
+              and (r.enteredAt >= :since or r.exitedAt is null)
+            """)
+    Page<ParkingRecord> findHistoryByHouseholdId(@Param("householdId") Long householdId,
+                                                 @Param("since") LocalDateTime since,
+                                                 Pageable pageable);
 }
