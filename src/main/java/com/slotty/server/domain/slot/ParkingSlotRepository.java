@@ -1,6 +1,8 @@
 package com.slotty.server.domain.slot;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -43,4 +45,14 @@ public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> 
 
     // 빌라 정보의 면 수
     long countByVillaId(Long villaId);
+
+    // 방문 면 지정: 같은 면을 동시에 지정하는 요청을 한 줄로 세우려고 면 행에 쓰기 락 (SELECT ... FOR UPDATE)
+    // 락은 트랜잭션이 끝날 때 풀림. 배정 세대는 가용시간 판단에 필요해서 함께 조회
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select s from ParkingSlot s
+            left join fetch s.household
+            where s.id = :id and s.villa.id = :villaId
+            """)
+    Optional<ParkingSlot> findForUpdateByIdAndVillaId(@Param("id") Long id, @Param("villaId") Long villaId);
 }

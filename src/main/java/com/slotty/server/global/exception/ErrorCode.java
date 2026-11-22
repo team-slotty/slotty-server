@@ -52,7 +52,16 @@ public enum ErrorCode {
     CANNOT_REMOVE_ADMIN(HttpStatus.BAD_REQUEST, "관리자는 먼저 관리자 권한을 위임해야 합니다."),
 
     // 빌라
-    SLOT_IN_USE(HttpStatus.CONFLICT, "기록이 남아 있는 주차면은 삭제할 수 없습니다.");
+    SLOT_IN_USE(HttpStatus.CONFLICT, "기록이 남아 있는 주차면은 삭제할 수 없습니다."),
+
+    // 방문
+    VISIT_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "방문 시간이 올바르지 않습니다. (종료가 시작보다 늦고, 24시간 이하, 종료가 지금 이후)"),
+    VISIT_NOT_FOUND(HttpStatus.NOT_FOUND, "방문을 찾을 수 없습니다."),
+    SLOT_NOT_AVAILABLE(HttpStatus.CONFLICT, "방문 시간에 지정할 수 없는 주차면입니다."),
+    VISIT_OVERLAP(HttpStatus.CONFLICT, "같은 면에 시간이 겹치는 방문이 있습니다."),
+    VISIT_ALREADY_STARTED(HttpStatus.CONFLICT, "이미 시작된 방문입니다."),
+    VISIT_NOT_STARTED(HttpStatus.CONFLICT, "아직 시작되지 않은 방문입니다."),
+    VISIT_ALREADY_ENDED(HttpStatus.CONFLICT, "이미 종료된 방문입니다.");
 
     private final HttpStatus status;
     private final String message;
