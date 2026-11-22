@@ -56,4 +56,9 @@ public class User extends BaseTimeEntity {
     public void joinHousehold(Household household) {
         this.household = household;
     }
+
+    // 세대원 내보내기: 계정은 유지하고 소속만 해제
+    public void leaveHousehold() {
+        this.household = null;
+    }
 }

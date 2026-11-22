@@ -1,6 +1,8 @@
 package com.slotty.server.domain.vehicle;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -29,4 +31,32 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     // 같은 빌라 번호판 중복, 자기 자신 제외 (수정)
     boolean existsByVillaIdAndPlateNumberAndIdNot(Long villaId, String plateNumber, Long id);
+
+    // 차량번호 검색: 같은 빌라 + 뒤 4자리 일치(인덱스 idx_vehicle_villa_last4) + 입력값으로 끝나는 번호
+    // 호수·연락 담당자를 응답에 쓰므로 fetch join, 최대 건수는 Pageable로 제한
+    @Query("""
+            select v from Vehicle v
+            join fetch v.household
+            left join fetch v.contactUser
+            where v.villa.id = :villaId
+              and v.plateLast4 = :last4
+              and v.plateNumber like concat('%', :keyword)
+            order by v.id
+            """)
+    List<Vehicle> searchInVilla(@Param("villaId") Long villaId,
+                                @Param("last4") String last4,
+                                @Param("keyword") String keyword,
+                                Pageable pageable);
+
+    // 관리자 세대 목록의 차량 수: 세대별 개수를 GROUP BY 한 번으로 [householdId, count]
+    @Query("select v.household.id, count(v) from Vehicle v where v.villa.id = :villaId group by v.household.id")
+    List<Object[]> countByHouseholdInVilla(@Param("villaId") Long villaId);
+
+    // 세대 삭제 전 차량 확인
+    boolean existsByHouseholdId(Long householdId);
+
+    // 세대원 내보내기: 그 사람이 연락 담당자인 차량은 담당자 없음으로 (UPDATE 한 번)
+    @Modifying
+    @Query("update Vehicle v set v.contactUser = null where v.contactUser.id = :userId")
+    void clearContactUser(@Param("userId") Long userId);
 }

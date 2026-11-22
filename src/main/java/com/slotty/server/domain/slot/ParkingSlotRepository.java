@@ -32,4 +32,12 @@ public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> 
 
     // 참여 응답의 hasAssignedSlot: 개수가 아니라 "있나?"만 필요해서 exists
     boolean existsByHouseholdId(Long householdId);
+
+    // 면 상세: 우리 빌라 면 + 배정 세대 (공용 면은 세대가 없어 left join)
+    @Query("""
+            select s from ParkingSlot s
+            left join fetch s.household
+            where s.id = :id and s.villa.id = :villaId
+            """)
+    Optional<ParkingSlot> findWithHouseholdByIdAndVillaId(@Param("id") Long id, @Param("villaId") Long villaId);
 }

@@ -63,4 +63,42 @@ public class Availability extends BaseTimeEntity {
         LocalTime time = at.toLocalTime();
         return !time.isBefore(startTime) && time.isBefore(endTime); // 시작 포함, 끝 제외
     }
+
+    // 매주 반복 (days_mask: 월=1 ... 일=64)
+    public static Availability recurring(ParkingSlot slot, User registeredBy, int daysMask,
+                                         boolean allDay, LocalTime startTime, LocalTime endTime) {
+        Availability availability = base(slot, registeredBy, allDay, startTime, endTime);
+        availability.recurring = true;
+        availability.daysMask = daysMask;
+        return availability;
+    }
+
+    // 하루만
+    public static Availability once(ParkingSlot slot, User registeredBy, LocalDate targetDate,
+                                    boolean allDay, LocalTime startTime, LocalTime endTime) {
+        Availability availability = base(slot, registeredBy, allDay, startTime, endTime);
+        availability.recurring = false;
+        availability.targetDate = targetDate;
+        return availability;
+    }
+
+    private static Availability base(ParkingSlot slot, User registeredBy,
+                                     boolean allDay, LocalTime startTime, LocalTime endTime) {
+        Availability availability = new Availability();
+        availability.slot = slot;
+        availability.registeredBy = registeredBy;
+        availability.allDay = allDay;
+        availability.startTime = allDay ? null : startTime;
+        availability.endTime = allDay ? null : endTime;
+        return availability;
+    }
+
+    // 그 날짜에 원래 회차가 있는가 ([이번만 해제] 검증: 반복이면 요일, 단건이면 날짜)
+    public boolean isScheduledOn(LocalDate date) {
+        if (recurring) {
+            int dayBit = 1 << (date.getDayOfWeek().getValue() - 1);
+            return (daysMask & dayBit) != 0;
+        }
+        return targetDate.equals(date);
+    }
 }

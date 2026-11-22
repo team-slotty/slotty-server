@@ -45,4 +45,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 연락 담당자 지정: 내 세대의 활성 사용자일 때만
     Optional<User> findByIdAndHouseholdIdAndDeletedAtIsNull(Long id, Long householdId);
+
+    // 관리자 세대 목록의 세대원: 빌라 전체 활성 사용자 + 세대 (세대별로 묶기 위해 fetch join)
+    @Query("""
+            select u from User u
+            join fetch u.household h
+            where h.villa.id = :villaId and u.deletedAt is null
+            order by u.id
+            """)
+    List<User> findActiveMembersByVillaId(@Param("villaId") Long villaId);
+
+    // 세대 삭제 전 가입자 확인
+    boolean existsByHouseholdId(Long householdId);
 }
