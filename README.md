@@ -1,5 +1,7 @@
 # Slotty Server
 
+[![CI](https://github.com/team-slotty/slotty-server/actions/workflows/ci.yml/badge.svg)](https://github.com/team-slotty/slotty-server/actions/workflows/ci.yml)
+
 빌라(다세대 주택) 주차 관리 앱 **Slotty**의 백엔드입니다.
 빌라 주차장은 배정 면과 공용 면이 섞여 있고 관리인이 없어 "지금 어느 면이 비었는지, 누구 차가 서 있는지"를 알기 어렵습니다.
 Slotty는 입주민이 입차·출차를 기록하고, 빌라 주차 현황판으로 빈 면과 주차 중인 차를 한눈에 보게 합니다.
