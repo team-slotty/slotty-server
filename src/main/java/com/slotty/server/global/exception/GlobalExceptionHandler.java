@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,6 +42,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         return toResponse(ErrorCode.VALIDATION_FAILED, Map.of(e.getName(), "형식이 올바르지 않습니다."));
+    }
+
+    // 필수 쿼리 파라미터 누락 (예: /api/vehicles/search 에 plate 없음)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParameter(MissingServletRequestParameterException e) {
+        return toResponse(ErrorCode.VALIDATION_FAILED, Map.of(e.getParameterName(), "필수 값입니다."));
     }
 
     // 없는 경로 (예: /api/parking/nope) → 다른 에러와 같은 { code, message, details } 형식의 404
