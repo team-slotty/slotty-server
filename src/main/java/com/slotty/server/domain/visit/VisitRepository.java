@@ -62,6 +62,47 @@ public interface VisitRepository extends JpaRepository<Visit, Long> {
             """)
     List<Visit> findActiveBySlotId(@Param("slotId") Long slotId, @Param("now") LocalDateTime now);
 
+    // ===== 현황판(22)·면 상세(24) =====
+
+    // 빌라의 면 지정 방문 후보: 면 지정이 살아 있고 [방문 종료] 전이며 오늘 안에 시작하는 방문 (+ 방문 세대·면)
+    // 확인 필요(종료 시각이 한참 지남)도 [방문 종료] 전까지 후보에 남음. 어느 방문을 보여줄지는 SlotStatusResolver.pickVisit
+    @Query("""
+            select v from Visit v
+            join fetch v.household
+            join fetch v.slot s
+            where s.villa.id = :villaId
+              and v.slotCancelledAt is null
+              and v.endedAt is null
+              and v.startAt < :until
+            """)
+    List<Visit> findBoardCandidatesByVillaId(@Param("villaId") Long villaId, @Param("until") LocalDateTime until);
+
+    // 면 상세: 같은 후보를 면 하나만
+    @Query("""
+            select v from Visit v
+            join fetch v.household
+            join fetch v.slot s
+            where s.id = :slotId
+              and v.slotCancelledAt is null
+              and v.endedAt is null
+              and v.startAt < :until
+            """)
+    List<Visit> findBoardCandidatesBySlotId(@Param("slotId") Long slotId, @Param("until") LocalDateTime until);
+
+    // 오늘 방문(todayVisits): 우리 세대 방문 중 오늘 시작했거나 오늘에 걸치는 것 + 아직 정리 안 된 확인 필요
+    @Query("""
+            select v from Visit v
+            left join fetch v.slot
+            where v.household.id = :householdId
+              and v.startAt < :tomorrow
+              and (coalesce(v.endedAt, v.endAt) >= :today
+                   or (v.endedAt is null and v.slot is not null and v.slotCancelledAt is null))
+            order by v.startAt, v.id
+            """)
+    List<Visit> findTodayByHouseholdId(@Param("householdId") Long householdId,
+                                       @Param("today") LocalDateTime today,
+                                       @Param("tomorrow") LocalDateTime tomorrow);
+
     // ===== 37. 우리 세대 방문 목록 (상태 계산 규칙은 Visit.stateAt과 같게) =====
 
     // UPCOMING = 시작 전 (가까운 순)
