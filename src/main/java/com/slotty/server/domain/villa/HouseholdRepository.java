@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface HouseholdRepository extends JpaRepository<Household, Long> {
@@ -15,4 +16,16 @@ public interface HouseholdRepository extends JpaRepository<Household, Long> {
             where h.inviteCode = :inviteCode
             """)
     Optional<Household> findWithVillaByInviteCode(@Param("inviteCode") String inviteCode);
+
+    // 관리자 세대 목록
+    List<Household> findByVillaIdOrderById(Long villaId);
+
+    // 우리 빌라 세대일 때만 (다른 빌라면 empty → 404)
+    Optional<Household> findByIdAndVillaId(Long id, Long villaId);
+
+    // 같은 빌라 호수 중복 (uk_household_villa_unit)
+    boolean existsByVillaIdAndUnitNumber(Long villaId, String unitNumber);
+
+    // 초대 코드 중복 (uk_household_invite_code)
+    boolean existsByInviteCode(String inviteCode);
 }

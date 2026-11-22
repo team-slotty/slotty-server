@@ -25,4 +25,18 @@ public class Household extends BaseTimeEntity {
 
     @Column(nullable = false, length = 12, unique = true)
     private String inviteCode;
+
+    // 세대 추가 (관리자 15번, 빌라 온보딩 8번)
+    public static Household create(Villa villa, String unitNumber, String inviteCode) {
+        Household household = new Household();
+        household.villa = villa;
+        household.unitNumber = unitNumber;
+        household.inviteCode = inviteCode;
+        return household;
+    }
+
+    // 초대 코드 재발급: 같은 행을 덮어써서 이전 코드는 즉시 무효
+    public void changeInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+    }
 }

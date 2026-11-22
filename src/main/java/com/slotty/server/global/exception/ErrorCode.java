@@ -42,7 +42,14 @@ public enum ErrorCode {
     NOT_SLOT_OWNER(HttpStatus.FORBIDDEN, "내 세대에 배정된 주차면이 아닙니다."),
     AVAILABILITY_INVALID(HttpStatus.BAD_REQUEST, "가용시간 값이 올바르지 않습니다."),
     AVAILABILITY_NOT_FOUND(HttpStatus.NOT_FOUND, "가용시간을 찾을 수 없습니다."),
-    EXCEPTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해제한 날짜입니다.");
+    EXCEPTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해제한 날짜입니다."),
+
+    // 관리자
+    FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다."),
+    HOUSEHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "세대를 찾을 수 없습니다."),
+    UNIT_NUMBER_DUPLICATED(HttpStatus.CONFLICT, "이미 있는 호수입니다."),
+    HOUSEHOLD_NOT_EMPTY(HttpStatus.CONFLICT, "가입자나 차량이 남아 있는 세대는 삭제할 수 없습니다."),
+    CANNOT_REMOVE_ADMIN(HttpStatus.BAD_REQUEST, "관리자는 먼저 관리자 권한을 위임해야 합니다.");
 
     private final HttpStatus status;
     private final String message;

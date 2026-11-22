@@ -44,4 +44,9 @@ public class Villa extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private EntranceSide entranceSide;
+
+    // 관리자 위임 (빌라당 관리자 1명)
+    public void changeAdmin(User newAdmin) {
+        this.adminUser = newAdmin;
+    }
 }
