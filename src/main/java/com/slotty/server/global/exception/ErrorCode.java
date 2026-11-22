@@ -13,6 +13,11 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "로그인이 만료되었습니다. 다시 로그인해 주세요."),
     LOGIN_ID_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
 
+    // 세대 참여
+    INVITE_CODE_INVALID(HttpStatus.NOT_FOUND, "초대 코드가 올바르지 않습니다."),
+    ALREADY_IN_HOUSEHOLD(HttpStatus.CONFLICT, "이미 세대에 소속되어 있습니다."),
+    TOO_MANY_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS, "시도 횟수를 초과했습니다. 잠시 후 다시 시도해 주세요."),
+
     // 400: 요청 값 형식·범위 오류 (details에 필드별 사유)
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "요청 값이 올바르지 않습니다."),
     // 404: 없는 주소 (경로 오타 등)
