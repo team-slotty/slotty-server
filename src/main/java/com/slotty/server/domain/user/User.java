@@ -61,4 +61,32 @@ public class User extends BaseTimeEntity {
     public void leaveHousehold() {
         this.household = null;
     }
+
+    // 6. 내 정보 수정: 보낸 값만 (null이면 그대로)
+    public void updateProfile(String name, String phone, Boolean phonePublic) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (phone != null) {
+            this.phone = phone;
+        }
+        if (phonePublic != null) {
+            this.phonePublic = phonePublic;
+        }
+    }
+
+    // 7. 탈퇴: 행은 지우지 않고(입출차·방문 기록의 FK) 개인정보만 지움 (소프트 삭제)
+    public void withdraw(LocalDateTime at) {
+        this.deletedAt = at;
+        this.loginId = WITHDRAWN_LOGIN_ID_PREFIX + id; // 같은 아이디로 다시 가입할 수 있게 비움 (uk_users_login_id)
+        this.name = WITHDRAWN_NAME;
+        this.phone = "";                               // NOT NULL 컬럼이라 빈 값
+        this.phonePublic = false;
+        this.passwordHash = WITHDRAWN_PASSWORD_HASH;   // BCrypt 형식이 아니라 어떤 비밀번호와도 일치하지 않음
+        this.household = null;
+    }
+
+    public static final String WITHDRAWN_LOGIN_ID_PREFIX = "deleted_";
+    public static final String WITHDRAWN_NAME = "탈퇴한 사용자";
+    private static final String WITHDRAWN_PASSWORD_HASH = "!withdrawn";
 }
