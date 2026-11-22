@@ -31,4 +31,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
     @Modifying
     @Query("delete from Availability a where a.slot.id = :slotId")
     void deleteAllBySlotId(@Param("slotId") Long slotId);
+
+    // 배치 변경: 삭제할 면에 가용시간이 남아 있는지
+    boolean existsBySlotId(Long slotId);
 }

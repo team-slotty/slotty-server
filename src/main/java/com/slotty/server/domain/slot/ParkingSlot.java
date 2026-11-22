@@ -50,4 +50,23 @@ public class ParkingSlot extends BaseTimeEntity {
     public void assignTo(Household household) {
         this.household = household;
     }
+
+    // 면 생성 (빌라 온보딩, 배치 변경으로 면 수를 늘릴 때)
+    public static ParkingSlot create(Villa villa, Household household, String label, SlotPosition position) {
+        ParkingSlot slot = new ParkingSlot();
+        slot.villa = villa;
+        slot.household = household;
+        slot.label = label;
+        slot.relocate(position);
+        return slot;
+    }
+
+    // 배치 변경: 좌표만 다시 (배정 세대·이름은 유지)
+    public void relocate(SlotPosition position) {
+        this.x = position.x();
+        this.y = position.y();
+        this.w = position.w();
+        this.h = position.h();
+        this.rotation = position.rotation();
+    }
 }

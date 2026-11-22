@@ -8,4 +8,7 @@ public interface UnidentifiedReportRepository extends JpaRepository<Unidentified
 
     // 이 면의 미해제 미확인 기록 (open_slot_id 유니크라 최대 1건)
     Optional<UnidentifiedReport> findBySlotIdAndResolvedAtIsNull(Long slotId);
+
+    // 배치 변경: 삭제할 면에 미확인 기록이 남아 있는지
+    boolean existsBySlotId(Long slotId);
 }

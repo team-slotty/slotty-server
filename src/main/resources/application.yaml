@@ -29,3 +29,7 @@ jwt:
   secret: ${JWT_SECRET}
   access-expiration: 1800000      # 30분 (밀리초)
   refresh-expiration: 1209600000  # 14일 (밀리초)
+
+# 카카오 로컬 API (주소 → 좌표). 키가 없으면 변환을 건너뛰고 geocodeFailed: true
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY:}

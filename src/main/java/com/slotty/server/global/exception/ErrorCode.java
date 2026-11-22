@@ -49,7 +49,10 @@ public enum ErrorCode {
     HOUSEHOLD_NOT_FOUND(HttpStatus.NOT_FOUND, "세대를 찾을 수 없습니다."),
     UNIT_NUMBER_DUPLICATED(HttpStatus.CONFLICT, "이미 있는 호수입니다."),
     HOUSEHOLD_NOT_EMPTY(HttpStatus.CONFLICT, "가입자나 차량이 남아 있는 세대는 삭제할 수 없습니다."),
-    CANNOT_REMOVE_ADMIN(HttpStatus.BAD_REQUEST, "관리자는 먼저 관리자 권한을 위임해야 합니다.");
+    CANNOT_REMOVE_ADMIN(HttpStatus.BAD_REQUEST, "관리자는 먼저 관리자 권한을 위임해야 합니다."),
+
+    // 빌라
+    SLOT_IN_USE(HttpStatus.CONFLICT, "기록이 남아 있는 주차면은 삭제할 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;
