@@ -35,7 +35,14 @@ public enum ErrorCode {
     PLATE_DUPLICATED(HttpStatus.CONFLICT, "이미 등록된 차량번호입니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     PLATE_TOO_SHORT(HttpStatus.BAD_REQUEST, "차량번호를 뒤 4자리 이상 입력해 주세요."),
-    SEARCH_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "오늘 검색 횟수(20회)를 모두 사용했습니다.");
+    SEARCH_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "오늘 검색 횟수(20회)를 모두 사용했습니다."),
+
+    // 가용시간
+    NO_ASSIGNED_SLOT(HttpStatus.FORBIDDEN, "배정된 주차면이 있는 세대만 이용할 수 있습니다."),
+    NOT_SLOT_OWNER(HttpStatus.FORBIDDEN, "내 세대에 배정된 주차면이 아닙니다."),
+    AVAILABILITY_INVALID(HttpStatus.BAD_REQUEST, "가용시간 값이 올바르지 않습니다."),
+    AVAILABILITY_NOT_FOUND(HttpStatus.NOT_FOUND, "가용시간을 찾을 수 없습니다."),
+    EXCEPTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해제한 날짜입니다.");
 
     private final HttpStatus status;
     private final String message;
