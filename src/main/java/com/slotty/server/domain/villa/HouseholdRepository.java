@@ -28,4 +28,7 @@ public interface HouseholdRepository extends JpaRepository<Household, Long> {
 
     // 초대 코드 중복 (uk_household_invite_code)
     boolean existsByInviteCode(String inviteCode);
+
+    // 빌라 정보의 세대 수
+    long countByVillaId(Long villaId);
 }

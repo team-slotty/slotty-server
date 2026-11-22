@@ -40,4 +40,7 @@ public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> 
             where s.id = :id and s.villa.id = :villaId
             """)
     Optional<ParkingSlot> findWithHouseholdByIdAndVillaId(@Param("id") Long id, @Param("villaId") Long villaId);
+
+    // 빌라 정보의 면 수
+    long countByVillaId(Long villaId);
 }

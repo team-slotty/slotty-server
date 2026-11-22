@@ -81,4 +81,7 @@ public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Lo
             where r.slot.id = :slotId and r.exitedAt is null
             """)
     Optional<ParkingRecord> findOpenWithVehicleBySlotId(@Param("slotId") Long slotId);
+
+    // 배치 변경: 삭제할 면에 입출차 기록이 남아 있는지 (FK)
+    boolean existsBySlotId(Long slotId);
 }
