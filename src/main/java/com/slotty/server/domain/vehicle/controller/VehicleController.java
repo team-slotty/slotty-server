@@ -4,6 +4,8 @@ import com.slotty.server.domain.vehicle.dto.VehicleCreateRequest;
 import com.slotty.server.domain.vehicle.dto.VehicleResponse;
 import com.slotty.server.domain.vehicle.dto.VehicleUpdateRequest;
 import com.slotty.server.domain.vehicle.service.VehicleService;
+import com.slotty.server.domain.vehicle.dto.VehicleSearchResponse;
+import com.slotty.server.domain.vehicle.service.VehicleSearchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import java.util.List;
 public class VehicleController {
 
     private final VehicleService vehicleService;
+    private final VehicleSearchService vehicleSearchService;
 
     @GetMapping
     public List<VehicleResponse> getVehicles(@AuthenticationPrincipal Long userId) {
@@ -42,5 +45,10 @@ public class VehicleController {
     public ResponseEntity<Void> delete(@AuthenticationPrincipal Long userId, @PathVariable Long vehicleId) {
         vehicleService.delete(userId, vehicleId);
         return ResponseEntity.noContent().build(); // 204
+    }
+
+    @GetMapping("/search")
+    public VehicleSearchResponse search(@AuthenticationPrincipal Long userId, @RequestParam String plate) {
+        return vehicleSearchService.search(userId, plate);
     }
 }
