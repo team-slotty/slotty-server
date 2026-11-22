@@ -10,6 +10,8 @@ import com.slotty.server.global.auth.JwtProvider;
 import com.slotty.server.global.exception.BusinessException;
 import com.slotty.server.domain.auth.dto.SignupRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -108,6 +110,22 @@ public class AuthService {
     // 이미 없는 키여도 결과(로그아웃 상태)는 같으므로 에러 없이 끝낸다
     public void logout(LogoutRequest logoutRequest) {
         redisTemplate.delete(REFRESH_KEY_PREFIX + logoutRequest.refreshToken());
+    }
+
+    // 탈퇴: 이 사용자의 Refresh를 모든 기기에서 폐기
+    // 저장 구조가 refresh:{토큰} → userId 라서 사용자별로 바로 찾을 수 없음 → SCAN으로 refresh:* 키를 훑어 값이 userId인 것만 삭제
+    // (KEYS는 Redis를 멈추게 할 수 있어 SCAN으로 나눠 읽음. 재발급도 탈퇴 사용자를 거부하므로 이건 이중 안전장치)
+    public void revokeAllRefreshTokens(Long userId) {
+        String target = String.valueOf(userId);
+        ScanOptions options = ScanOptions.scanOptions().match(REFRESH_KEY_PREFIX + "*").count(500).build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                String key = cursor.next();
+                if (target.equals(redisTemplate.opsForValue().get(key))) {
+                    redisTemplate.delete(key);
+                }
+            }
+        }
     }
 
     // 새 Access와 새 Refresh를 만들고, 새 Refresh를 Redis에 저장

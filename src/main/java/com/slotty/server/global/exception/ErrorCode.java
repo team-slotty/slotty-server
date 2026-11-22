@@ -66,7 +66,10 @@ public enum ErrorCode {
     // 미확인 차량
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "미확인 기록을 찾을 수 없습니다."),
     REPORT_ALREADY_OPEN(HttpStatus.CONFLICT, "이미 미확인 차량으로 기록된 면입니다."),
-    REPORT_ALREADY_RESOLVED(HttpStatus.CONFLICT, "이미 해제된 미확인 기록입니다.");
+    REPORT_ALREADY_RESOLVED(HttpStatus.CONFLICT, "이미 해제된 미확인 기록입니다."),
+
+    // 탈퇴
+    ADMIN_MUST_DELEGATE(HttpStatus.CONFLICT, "관리자는 다른 입주민에게 관리자를 위임한 뒤 탈퇴할 수 있습니다.");
 
     private final HttpStatus status;
     private final String message;
