@@ -1,5 +1,7 @@
 package com.slotty.server.domain.availability.service;
 
+import com.slotty.server.domain.board.event.BoardChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.slotty.server.domain.availability.Availability;
 import com.slotty.server.domain.availability.AvailabilityException;
 import com.slotty.server.domain.availability.AvailabilityExceptionRepository;
@@ -43,6 +45,7 @@ public class AvailabilityService {
     private final AvailabilityRepository availabilityRepository;
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
     private final VisitSlotPolicy visitSlotPolicy;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ===== 47. 우리 면 가용시간 목록 =====
     public List<AvailabilityResponse> getAvailabilities(Long userId, Long slotId) {
@@ -86,6 +89,7 @@ public class AvailabilityService {
                 request.allDay(), request.startTime(), request.endTime());
 
         availabilityRepository.save(availability);
+        eventPublisher.publishEvent(BoardChangedEvent.of(household.getVilla().getId(), slot.getId()));
         return AvailabilityResponse.of(availability, List.of());
     }
 
@@ -102,6 +106,7 @@ public class AvailabilityService {
 
         // 이 가용시간이 사라져 시간이 더 이상 덮이지 않는 방문은 면 지정 취소 표시 (명세 49 부수 효과)
         visitSlotPolicy.cancelBrokenVisits(availability.getSlot(), LocalDateTime.now(KST));
+        eventPublisher.publishEvent(BoardChangedEvent.of(user.getHousehold().getVilla().getId(), availability.getSlot().getId()));
     }
 
     // ===== 50. [이번만 해제] =====
@@ -124,6 +129,7 @@ public class AvailabilityService {
         }
         // 그 날짜에 이 가용시간에 기대던 방문은 면 지정 취소 표시 (명세 50 부수 효과)
         visitSlotPolicy.cancelBrokenVisits(availability.getSlot(), LocalDateTime.now(KST));
+        eventPublisher.publishEvent(BoardChangedEvent.of(user.getHousehold().getVilla().getId(), availability.getSlot().getId()));
         return new SkipResponse(availability.getId(), skipDate);
     }
 

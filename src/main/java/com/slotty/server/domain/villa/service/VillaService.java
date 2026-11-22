@@ -1,5 +1,7 @@
 package com.slotty.server.domain.villa.service;
 
+import com.slotty.server.domain.board.event.BoardChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.slotty.server.domain.availability.AvailabilityRepository;
 import com.slotty.server.domain.parking.ParkingRecordRepository;
 import com.slotty.server.domain.slot.ParkingSlot;
@@ -42,6 +44,7 @@ public class VillaService {
     private final ParkingRecordRepository parkingRecordRepository;
     private final AvailabilityRepository availabilityRepository;
     private final UnidentifiedReportRepository unidentifiedReportRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ===== 8. 빌라 온보딩 (빌라 → 세대 → 면 → 배정 → 내 소속 → 관리자, 한 트랜잭션) =====
     @Transactional
@@ -189,6 +192,7 @@ public class VillaService {
             }
         }
         villa.changeLayout(request.layoutTemplate(), request.entranceSide());
+        eventPublisher.publishEvent(BoardChangedEvent.all(villa.getId())); // 면 구성 자체가 바뀜 → 전체
 
         return new LayoutResponse(kept.stream().map(SlotLayoutResponse::from).toList());
     }

@@ -1,5 +1,7 @@
 package com.slotty.server.domain.visit.service;
 
+import com.slotty.server.domain.board.event.BoardChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.slotty.server.domain.slot.ParkingSlot;
 import com.slotty.server.domain.slot.ParkingSlotRepository;
 import com.slotty.server.domain.user.User;
@@ -44,6 +46,7 @@ public class VisitService {
     private final VisitRepository visitRepository;
     private final FrequentVehicleRepository frequentVehicleRepository;
     private final VisitSlotPolicy visitSlotPolicy;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ===== 35. 방문차량 등록 =====
     // READ_COMMITTED: 면 락을 기다렸다 받은 뒤의 겹침 조회가 "방금 커밋된 다른 방문"을 보도록
@@ -64,6 +67,9 @@ public class VisitService {
 
         Visit visit = visitRepository.save(Visit.register(household, user, plateNumber, startAt, endAt, slot));
         rememberFrequentVehicle(household, plateNumber, now);
+        if (slot != null) { // 면 없는 방문은 현황판에 안 보임
+            eventPublisher.publishEvent(BoardChangedEvent.of(household.getVilla().getId(), slot.getId()));
+        }
         return VisitResponse.of(visit, now);
     }
 
@@ -145,6 +151,11 @@ public class VisitService {
             visit.changePlateNumber(plateNumber);
             rememberFrequentVehicle(user.getHousehold(), plateNumber, now);
         }
+        // 이전 면과 새 면 모두 (시간만 바뀌어도 그 면의 방문 예정 표시가 달라질 수 있음)
+        Long newSlotId = visit.getSlot() == null ? null : visit.getSlot().getId();
+        if (currentSlotId != null || newSlotId != null) {
+            eventPublisher.publishEvent(BoardChangedEvent.of(user.getHousehold().getVilla().getId(), currentSlotId, newSlotId));
+        }
         return VisitResponse.of(visit, now);
     }
 
@@ -157,6 +168,9 @@ public class VisitService {
             throw new BusinessException(VISIT_ALREADY_STARTED); // 시작 후에는 41번 [방문 종료]
         }
         visitRepository.delete(visit);
+        if (visit.hasActiveSlot()) {
+            eventPublisher.publishEvent(BoardChangedEvent.of(user.getHousehold().getVilla().getId(), visit.getSlot().getId()));
+        }
     }
 
     // ===== 41. [방문 종료] (방문 세대) =====
@@ -174,6 +188,9 @@ public class VisitService {
             throw new BusinessException(VISIT_ALREADY_ENDED); // 이미 눌렀거나, 면 없는 방문이 종료 시각에 자동 종료됨
         }
         visit.end(user, now);
+        if (visit.hasActiveSlot()) { // 방문 중·확인 필요 → 빈 면
+            eventPublisher.publishEvent(BoardChangedEvent.of(user.getHousehold().getVilla().getId(), visit.getSlot().getId()));
+        }
         return VisitResponse.of(visit, now);
     }
 

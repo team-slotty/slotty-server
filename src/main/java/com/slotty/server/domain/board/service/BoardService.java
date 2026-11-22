@@ -182,4 +182,11 @@ public class BoardService {
         return new OccupantResponse(vehicle.getHousehold().getUnitNumber(), vehicle.getPlateLast4(),
                 myVehicle ? vehicle.getPlateNumber() : null, record.getEnteredAt());
     }
+
+    // 23. SSE 구독할 빌라 (세대 소속이 아니면 403)
+    public Long findVillaId(Long userId) {
+        return userRepository.findActiveWithHouseholdAndVilla(userId)
+                .orElseThrow(() -> new BusinessException(NOT_IN_HOUSEHOLD))
+                .getHousehold().getVilla().getId();
+    }
 }
