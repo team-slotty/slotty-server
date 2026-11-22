@@ -14,6 +14,8 @@ public enum ErrorCode {
 
     // 400: 요청 값 형식·범위 오류 (details에 필드별 사유)
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "요청 값이 올바르지 않습니다."),
+    // 404: 없는 주소 (경로 오타 등)
+    NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 주소를 찾을 수 없습니다."),
 
     // 입출차
     VEHICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "차량을 찾을 수 없습니다."),

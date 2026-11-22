@@ -31,4 +31,14 @@ public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Lo
 
     // 이 면의 열린 기록 (open_slot_id 유니크라 최대 1건)
     Optional<ParkingRecord> findBySlotIdAndExitedAtIsNull(Long slotId);
+
+    // 출차 옵션: 내 세대 차량의 열린 기록 + 차량 + 면 (번호판·면 이름 표시에 둘 다 필요해서 fetch join)
+    @Query("""
+            select r from ParkingRecord r
+            join fetch r.vehicle v
+            join fetch r.slot
+            where v.household.id = :householdId and r.exitedAt is null
+            order by v.id
+            """)
+    List<ParkingRecord> findOpenWithVehicleAndSlotByHouseholdId(@Param("householdId") Long householdId);
 }
