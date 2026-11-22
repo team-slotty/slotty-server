@@ -1,5 +1,7 @@
 package com.slotty.server.domain.slot.service;
 
+import com.slotty.server.domain.board.event.BoardChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.slotty.server.domain.availability.AvailabilityExceptionRepository;
 import com.slotty.server.domain.availability.AvailabilityRepository;
 import com.slotty.server.domain.slot.ParkingSlot;
@@ -17,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static com.slotty.server.global.exception.ErrorCode.HOUSEHOLD_NOT_FOUND;
@@ -34,11 +38,13 @@ public class SlotAssignmentService {
     private final AvailabilityRepository availabilityRepository;
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
     private final VisitSlotPolicy visitSlotPolicy;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ===== 21. 세대별 면 배정 (보낸 면만, 하나라도 실패하면 전부 취소) =====
     @Transactional
     public void assign(Long userId, SlotAssignmentRequest request) {
         Villa villa = adminChecker.requireAdmin(userId).getHousehold().getVilla();
+        List<Long> changedSlotIds = new ArrayList<>();
 
         for (SlotAssignmentRequest.Assignment assignment : request.assignments()) {
             ParkingSlot slot = parkingSlotRepository.findWithHouseholdByIdAndVillaId(assignment.slotId(), villa.getId())
@@ -56,7 +62,11 @@ public class SlotAssignmentService {
                 slot.assignTo(newOwner);
                 // 가용시간이 없어졌으니 그걸 근거로 지정한 방문은 취소 표시 (공용이 됐으면 그대로 지정 가능해서 취소 안 됨)
                 visitSlotPolicy.cancelBrokenVisits(slot, LocalDateTime.now(KST));
+                changedSlotIds.add(slot.getId());
             }
+        }
+        if (!changedSlotIds.isEmpty()) {
+            eventPublisher.publishEvent(BoardChangedEvent.of(villa.getId(), changedSlotIds));
         }
     }
 }

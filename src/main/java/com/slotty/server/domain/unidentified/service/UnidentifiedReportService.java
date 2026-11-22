@@ -1,5 +1,7 @@
 package com.slotty.server.domain.unidentified.service;
 
+import com.slotty.server.domain.board.event.BoardChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.slotty.server.domain.parking.EnterMethod;
 import com.slotty.server.domain.parking.ExitMethod;
 import com.slotty.server.domain.parking.ParkingRecord;
@@ -50,6 +52,7 @@ public class UnidentifiedReportService {
     private final VehicleRepository vehicleRepository;
     private final UnidentifiedReportRepository unidentifiedReportRepository;
     private final AdminChecker adminChecker;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ===== 43. 미확인 차량 기록 (관리자는 모든 면, 면 주인은 자기 면만. 공용 면은 관리자만) =====
     @Transactional
@@ -76,6 +79,7 @@ public class UnidentifiedReportService {
         } catch (DataIntegrityViolationException e) { // 동시에 같은 면을 기록 (uk_report_open_slot)
             throw new BusinessException(REPORT_ALREADY_OPEN);
         }
+        eventPublisher.publishEvent(BoardChangedEvent.of(villaIdOf(user), slot.getId()));
         return ReportResponse.from(report);
     }
 
@@ -91,6 +95,7 @@ public class UnidentifiedReportService {
             throw new BusinessException(REPORT_ALREADY_RESOLVED); // 이미 떠남·내 차·정상 입차로 해제됨
         }
         report.resolve(user, ResolveType.LEFT, later(report.getReportedAt(), now()));
+        eventPublisher.publishEvent(BoardChangedEvent.of(villaIdOf(user), report.getSlot().getId()));
         return ResolveResponse.from(report);
     }
 
@@ -120,7 +125,9 @@ public class UnidentifiedReportService {
                 .orElseThrow(() -> new BusinessException(VEHICLE_NOT_FOUND));
 
         // 3. 같은 차량의 다른 열린 기록은 출차 누락으로 보고 AUTO 정리 (입차 4단계와 같음)
+        Long[] previousSlotId = {null}; // 람다 안에서 값을 바꾸려고 배열 한 칸
         parkingRecordRepository.findByVehicleIdAndExitedAtIsNull(vehicle.getId()).ifPresent(open -> {
+            previousSlotId[0] = open.getSlot().getId();
             open.exit(null, ExitMethod.AUTO, later(open.getEnteredAt(), enteredAt));
             parkingRecordRepository.flush(); // INSERT보다 UPDATE를 먼저 (open_vehicle_id 유니크)
         });
@@ -141,6 +148,8 @@ public class UnidentifiedReportService {
 
         // 6. 미확인 기록 MINE 해제 (ck_report_resolve: 해제 시각 >= 기록 시각)
         report.resolve(user, ResolveType.MINE, later(report.getReportedAt(), now()));
+        // 이 면(미확인 → 사용 중) + 같은 차가 서 있던 다른 면(AUTO 정리)
+        eventPublisher.publishEvent(BoardChangedEvent.of(villaIdOf(user), slot.getId(), previousSlotId[0]));
         return new MineResponse(report.getId(), record.getId(), ResolveType.MINE, record.getEnteredAt());
     }
 

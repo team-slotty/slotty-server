@@ -1,5 +1,7 @@
 package com.slotty.server.domain.vehicle.service;
 
+import com.slotty.server.domain.board.event.BoardChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.slotty.server.domain.parking.ParkingRecordRepository;
 import com.slotty.server.domain.user.User;
 import com.slotty.server.domain.user.UserRepository;
@@ -28,6 +30,7 @@ public class VehicleService {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final ParkingRecordRepository parkingRecordRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ===== 25. 내 세대 차량 목록 =====
     public List<VehicleResponse> getVehicles(Long userId) {
@@ -89,8 +92,12 @@ public class VehicleService {
 
         // FK(parking_record.vehicle_id) 때문에 기록을 먼저 지워야 차량을 지울 수 있음
         // 주차 중 기록도 함께 지워지므로 그 면은 빈 면이 됨 (명세)
+        Long parkedSlotId = parkingRecordRepository.findOpenSlotIdByVehicleId(vehicle.getId()).orElse(null); // 지우기 전에 주차 중이던 면 기억
         parkingRecordRepository.deleteAllByVehicleId(vehicle.getId());
         vehicleRepository.delete(vehicle);
+        if (parkedSlotId != null) {
+            eventPublisher.publishEvent(BoardChangedEvent.of(user.getHousehold().getVilla().getId(), parkedSlotId));
+        }
     }
 
     // ===== 공통 =====

@@ -6,6 +6,7 @@ spring:
     username: ${DB_USERNAME:slotty}
     password: ${DB_PASSWORD:localdev}
   jpa:
+    open-in-view: false # SSE 연결이 DB 커넥션을 붙잡지 않도록. SSE를 뺀 경로는 OpenInViewConfig가 다시 켬
     hibernate:
       ddl-auto: validate # 테이블은 Flyway가 만들고, JPA는 엔티티와 테이블이 맞는지 검사만 함.
     show-sql: true

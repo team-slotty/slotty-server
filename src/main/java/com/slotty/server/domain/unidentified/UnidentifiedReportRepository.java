@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -20,6 +21,11 @@ public interface UnidentifiedReportRepository extends JpaRepository<Unidentified
     // 현황판: 빌라의 미해제 기록 전부 (면 id → 기록 Map으로 묶어 씀)
     @Query("select r from UnidentifiedReport r where r.slot.villa.id = :villaId and r.resolvedAt is null")
     List<UnidentifiedReport> findOpenByVillaId(@Param("villaId") Long villaId);
+
+    // 정리 스케줄러: 해제한 지 보관 기간이 지난 기록 삭제 (미해제는 resolvedAt이 NULL이라 제외). 지운 건수 반환
+    @Modifying
+    @Query("delete from UnidentifiedReport r where r.resolvedAt is not null and r.resolvedAt < :cutoff")
+    int deleteResolvedBefore(@Param("cutoff") LocalDateTime cutoff);
 
     // 배치 변경: 삭제할 면에 미확인 기록이 남아 있는지
     boolean existsBySlotId(Long slotId);

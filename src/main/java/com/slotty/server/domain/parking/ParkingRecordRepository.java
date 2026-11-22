@@ -82,6 +82,15 @@ public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Lo
             """)
     Optional<ParkingRecord> findOpenWithVehicleBySlotId(@Param("slotId") Long slotId);
 
+    // 차량 삭제 전 주차 중이던 면 id만 (엔티티를 불러오면 차량 삭제 후 flush에서 "삭제된 차량을 참조" 오류)
+    @Query("select r.slot.id from ParkingRecord r where r.vehicle.id = :vehicleId and r.exitedAt is null")
+    Optional<Long> findOpenSlotIdByVehicleId(@Param("vehicleId") Long vehicleId);
+
+    // 정리 스케줄러: 출차한 지 보관 기간이 지난 기록 삭제 (주차 중인 기록은 exitedAt이 NULL이라 제외). 지운 건수 반환
+    @Modifying
+    @Query("delete from ParkingRecord r where r.exitedAt is not null and r.exitedAt < :cutoff")
+    int deleteExitedBefore(@Param("cutoff") LocalDateTime cutoff);
+
     // 배치 변경: 삭제할 면에 입출차 기록이 남아 있는지 (FK)
     boolean existsBySlotId(Long slotId);
 }

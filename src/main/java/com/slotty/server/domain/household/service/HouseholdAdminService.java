@@ -1,5 +1,7 @@
 package com.slotty.server.domain.household.service;
 
+import com.slotty.server.domain.board.event.BoardChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.slotty.server.domain.availability.AvailabilityExceptionRepository;
 import com.slotty.server.domain.availability.AvailabilityRepository;
 import com.slotty.server.domain.household.dto.HouseholdCreateRequest;
@@ -23,6 +25,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,6 +45,7 @@ public class HouseholdAdminService {
     private final ParkingSlotRepository parkingSlotRepository;
     private final AvailabilityRepository availabilityRepository;
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ===== 14. 세대 목록 =====
     public List<HouseholdSummaryResponse> getHouseholds(Long userId) {
@@ -109,9 +113,11 @@ public class HouseholdAdminService {
         }
 
         // 배정돼 있던 면은 공용으로, 그 면의 가용시간은 삭제 (공용 면에는 가용시간이 없음)
+        List<Long> freedSlotIds = new ArrayList<>();
         for (ParkingSlot slot : parkingSlotRepository.findByHouseholdIdOrderById(household.getId())) {
             deleteAvailabilities(slot.getId());
             slot.assignTo(null);
+            freedSlotIds.add(slot.getId());
         }
 
         try {
@@ -119,6 +125,9 @@ public class HouseholdAdminService {
             householdRepository.flush(); // 방문·자주 오는 차 기록(FK)이 남아 있으면 여기서 위반 → 409
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(HOUSEHOLD_NOT_EMPTY);
+        }
+        if (!freedSlotIds.isEmpty()) {
+            eventPublisher.publishEvent(BoardChangedEvent.of(villa.getId(), freedSlotIds));
         }
     }
 
